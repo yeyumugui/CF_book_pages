@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node tools/prerender.mjs",
     "preview": "vite preview",
     "sync": "python tools/sync_notes.py",
-    "sync:build": "python tools/sync_notes.py && vite build"
+    "sync:build": "python tools/sync_notes.py && vite build && node tools/prerender.mjs"
   },
   "dependencies": {
     "markdown-it": "^15.0.2",

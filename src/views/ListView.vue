@@ -13,10 +13,10 @@
         v-for="b in books"
         :key="b.id"
         class="bcard"
-        :to="`/book/${encodeURIComponent(b.id)}`"
+        :to="bookPath(b.id)"
       >
         <div class="cov">
-          <img :src="coverWide(b.id)" :alt="b.title" loading="lazy" />
+          <img :src="coverWide(b.id)" :alt="`《${b.title}》精读笔记封面`" loading="lazy" />
           <span v-if="b.rank" class="rank">{{ b.rank }}</span>
           <span v-if="b._todo" class="todo">待补全</span>
         </div>
@@ -40,4 +40,9 @@
 
 <script setup>
 import { books, coverWide } from '../data'
+import site from '../../site.config.json'
+import { buildMeta, bookPath } from '../lib/meta'
+import { applyMeta } from '../lib/seo'
+
+applyMeta(buildMeta(site, { books }))
 </script>

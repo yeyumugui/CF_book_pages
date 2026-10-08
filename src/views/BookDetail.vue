@@ -4,7 +4,7 @@
 
     <template v-if="book">
       <div class="d-hero">
-        <img :src="coverWide(book.id)" :alt="book.title" />
+        <img :src="coverWide(book.id)" :alt="`《${book.title}》精读笔记封面`" />
       </div>
 
       <div class="d-head">
@@ -37,10 +37,12 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import MarkdownIt from 'markdown-it'
 import { getBook, coverWide, noteUrl } from '../data'
+import { renderNote } from '../lib/note'
+import site from '../../site.config.json'
+import { buildMeta } from '../lib/meta'
+import { applyMeta } from '../lib/seo'
 
-const md = new MarkdownIt({ html: true, linkify: true, breaks: false })
 const route = useRoute()
 
 const id = computed(() => decodeURIComponent(route.params.id || ''))
@@ -50,12 +52,6 @@ const html = ref('')
 const loading = ref(true)
 const error = ref('')
 
-/** 去掉 md 开头的 YAML frontmatter，避免被当成正文/表格渲染出来 */
-function stripFrontmatter(text) {
-  const m = /^\uFEFF?---\r?\n[\s\S]*?\r?\n---\r?\n?/.exec(text)
-  return m ? text.slice(m[0].length) : text
-}
-
 async function loadNote(bookId) {
   loading.value = true
   error.value = ''
@@ -63,8 +59,7 @@ async function loadNote(bookId) {
   try {
     const res = await fetch(noteUrl(bookId))
     if (!res.ok) throw new Error('HTTP ' + res.status)
-    const text = await res.text()
-    html.value = md.render(stripFrontmatter(text))
+    html.value = renderNote(await res.text())
   } catch (e) {
     error.value = '笔记载入失败：' + e.message
   } finally {
@@ -72,5 +67,13 @@ async function loadNote(bookId) {
   }
 }
 
-watch(id, (v) => v && loadNote(v), { immediate: true })
+watch(
+  id,
+  (v) => {
+    if (!v) return
+    if (book.value) applyMeta(buildMeta(site, { book: book.value }))
+    loadNote(v)
+  },
+  { immediate: true },
+)
 </script>

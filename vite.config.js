@@ -3,8 +3,8 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // 相对路径打包：dist 丢到任意子目录/静态托管都能直接打开（配合 hash 路由）
-  base: './',
+  // 站点部署在域名根目录，资源用绝对路径：预渲染页在 /book/xxx/ 下才不会解析错资源
+  base: '/',
   plugins: [vue()],
   build: {
     outDir: 'dist',
