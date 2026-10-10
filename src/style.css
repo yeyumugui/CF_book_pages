@@ -49,7 +49,7 @@ a { color: inherit; text-decoration: none; }
 }
 
 .shelf {
-  max-width: 1080px; margin: 0 auto; padding: 46px 24px 90px;
+  max-width: 1080px; margin: 0 auto; padding: 46px 24px 30px;
   display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 26px;
 }
 
@@ -82,6 +82,24 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid #e0d3ba; border-radius: 2px; padding: 3px 9px;
 }
 .bcard .go { margin-top: 16px; font-size: 13px; color: var(--accent); letter-spacing: .05em; }
+
+/* ---------- 分页 ---------- */
+.pager {
+  max-width: 1080px; margin: 0 auto; padding: 6px 24px 90px;
+  display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px;
+}
+.pager button, .pager a {
+  font-family: var(--serif); font-size: 14px; color: var(--ink-2);
+  background: var(--paper-2); border: 1px solid var(--line); border-radius: 2px;
+  height: 38px; padding: 0 14px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: .18s;
+}
+.pager .num { min-width: 38px; padding: 0; }
+.pager button:hover, .pager a:hover { border-color: #cbb894; color: var(--ink); }
+.pager .num.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.pager .nav.off { opacity: .36; cursor: default; pointer-events: none; }
+.pager .info { font-size: 13px; color: var(--ink-3); margin-left: 4px; }
 
 /* ---------- 详情页 ---------- */
 .detail { max-width: 860px; margin: 0 auto; padding: 0 24px 100px; }
@@ -134,7 +152,11 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 720px) {
   .hero h1 { font-size: 32px; }
-  .shelf { grid-template-columns: 1fr; padding: 32px 18px 70px; }
+  .shelf { grid-template-columns: 1fr; padding: 32px 18px 24px; }
+  .pager { padding: 4px 18px 64px; gap: 8px; }
+  .pager button, .pager a { height: 36px; font-size: 13px; padding: 0 12px; }
+  .pager .num { min-width: 36px; }
+  .pager .info { width: 100%; text-align: center; margin: 4px 0 0; }
   .detail { padding: 0 18px 80px; }
   .d-head h1 { font-size: 28px; }
   .d-head .meta { grid-template-columns: 1fr; gap: 2px 0; }

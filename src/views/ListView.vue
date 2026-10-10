@@ -10,7 +10,7 @@
 
     <main class="shelf">
       <router-link
-        v-for="b in books"
+        v-for="b in view.items"
         :key="b.id"
         class="bcard"
         :to="bookPath(b.id)"
@@ -32,6 +32,23 @@
       </router-link>
     </main>
 
+    <nav v-if="view.total > 1" class="pager">
+      <button class="nav" :class="{ off: view.page === 1 }" :disabled="view.page === 1" @click="go(view.page - 1)">
+        ← 上一页
+      </button>
+      <button
+        v-for="n in view.total"
+        :key="n"
+        class="num"
+        :class="{ on: n === view.page }"
+        @click="go(n)"
+      >{{ n }}</button>
+      <button class="nav" :class="{ off: view.page === view.total }" :disabled="view.page === view.total" @click="go(view.page + 1)">
+        下一页 →
+      </button>
+      <span class="info">第 {{ view.page }} / {{ view.total }} 页 · 每页 {{ size }} 本</span>
+    </nav>
+
     <footer class="site-foot">
       笔记内容为公开核心观点整理，非原文逐字转载；版权归各书原作者及出版方所有。
     </footer>
@@ -39,10 +56,54 @@
 </template>
 
 <script setup>
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { books, coverWide } from '../data'
 import site from '../../site.config.json'
 import { buildMeta, bookPath } from '../lib/meta'
 import { applyMeta } from '../lib/seo'
+import { NARROW_QUERY, PAGE_SIZE, PAGE_SIZE_NARROW, clampPage, pageSlice } from '../lib/pager'
 
 applyMeta(buildMeta(site, { books }))
+
+const route = useRoute()
+const router = useRouter()
+
+const narrow = ref(false)
+const size = computed(() => (narrow.value ? PAGE_SIZE_NARROW : PAGE_SIZE))
+const page = ref(clampPage(route.query.page, books.length, PAGE_SIZE))
+
+const view = computed(() => pageSlice(books, page.value, size.value))
+
+// 每页数量随屏宽变化，页码可能越界，收敛回合法范围
+watch([size, () => books.length], () => {
+  page.value = clampPage(page.value, books.length, size.value)
+})
+
+// 支持前进/后退与直接分享 ?page=2
+watch(
+  () => route.query.page,
+  (v) => {
+    const n = clampPage(v, books.length, size.value)
+    if (n !== page.value) page.value = n
+  },
+)
+
+function go(n) {
+  const next = clampPage(n, books.length, size.value)
+  if (next === page.value) return
+  page.value = next
+  router.replace({ path: '/', query: next > 1 ? { page: String(next) } : {} })
+}
+
+function syncNarrow() {
+  if (typeof window === 'undefined' || !window.matchMedia) return
+  narrow.value = window.matchMedia(NARROW_QUERY).matches
+}
+
+onMounted(() => {
+  syncNarrow()
+  window.addEventListener('resize', syncNarrow)
+})
+onBeforeUnmount(() => window.removeEventListener('resize', syncNarrow))
 </script>

@@ -8,6 +8,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { renderNote } from '../src/lib/note.js'
 import { buildMeta, bookPath, coverPath } from '../src/lib/meta.js'
+import { PAGE_SIZE, pageSlice } from '../src/lib/pager.js'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const dist = path.join(root, 'dist')
@@ -58,8 +59,30 @@ function inject(shellHtml, meta, bodyHtml) {
 
 const foot = '笔记内容为公开核心观点整理，非原文逐字转载；版权归原作者及出版方所有。'
 
+/** 与 ListView 的分页条保持同构：无 JS 时也能看到第 1 页与页码链接 */
+function pagerHtml(page, total) {
+  if (total <= 1) return ''
+  const href = (n) => (n <= 1 ? '/' : `/?page=${n}`)
+  const nums = Array.from({ length: total }, (_, i) => {
+    const n = i + 1
+    return `<a class="num${n === page ? ' on' : ''}" href="${href(n)}">${n}</a>`
+  }).join('')
+  const prevOff = page <= 1 ? ' off' : ''
+  const nextOff = page >= total ? ' off' : ''
+
+  return `
+    <nav class="pager">
+      <a class="nav${prevOff}" href="${href(page - 1)}">← 上一页</a>
+      ${nums}
+      <a class="nav${nextOff}" href="${href(page + 1)}">下一页 →</a>
+      <span class="info">第 ${page} / ${total} 页 · 每页 ${PAGE_SIZE} 本</span>
+    </nav>`
+}
+
 function listHtml() {
-  const cards = books
+  // 预渲染只写第 1 页：一是与客户端首屏一致（避免加载完突然缩水），二是首页别背 29 张大图
+  const { items, page, total } = pageSlice(books, 1, PAGE_SIZE)
+  const cards = items
     .map(
       (b) => `      <a class="bcard" href="${esc(bookPath(b.id))}">
         <div class="cov">
@@ -89,7 +112,7 @@ function listHtml() {
 
     <main class="shelf">
 ${cards}
-    </main>
+    </main>${pagerHtml(page, total)}
 
     <footer class="site-foot">${foot}</footer>`
 }
@@ -130,7 +153,14 @@ fs.writeFileSync(path.join(dist, 'index.html'), inject(shell, buildMeta(site, { 
 
 // ---- 详情页 ----
 const bookRoot = path.join(dist, 'book')
-fs.rmSync(bookRoot, { recursive: true, force: true })
+// dist 由 vite 每次清空重建，book/ 正常情况下不存在；存在时才清，且失败不中断构建
+if (fs.existsSync(bookRoot)) {
+  try {
+    fs.rmSync(bookRoot, { recursive: true, force: true })
+  } catch (e) {
+    console.warn('prerender: 清理旧 book/ 失败（忽略）', e?.message || e)
+  }
+}
 let done = 0
 for (const b of books) {
   const mdPath = path.join(root, 'public/notes', `${b.id}.md`)
