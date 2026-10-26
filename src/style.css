@@ -117,7 +117,7 @@ a { color: inherit; text-decoration: none; }
 .loading, .err { padding: 60px 0; text-align: center; color: var(--ink-3); }
 
 /* ---------- markdown 正文 ---------- */
-.md-body { font-size: 16.5px; color: var(--ink-2); }
+.md-body { font-size: 16.5px; color: var(--ink-2); overflow-wrap: break-word; }
 .md-body h1 { font-size: 27px; color: var(--ink); margin: 46px 0 16px; font-weight: 800; }
 .md-body h2 {
   font-size: 22px; color: var(--ink); margin: 44px 0 14px; font-weight: 800;
@@ -134,8 +134,10 @@ a { color: inherit; text-decoration: none; }
   border-left: 3px solid #d8c9ad; color: var(--ink-2); background: #fffdf7;
 }
 .md-body blockquote p { margin: 0; }
+/* 表格容器：宽表格在块内横向滚动，不外溢整页 */
+.md-body .tw { margin: 22px 0 26px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .md-body table {
-  width: 100%; border-collapse: collapse; margin: 22px 0 26px; font-size: 15px;
+  width: 100%; border-collapse: collapse; margin: 0; font-size: 15px;
   background: var(--paper-2);
 }
 .md-body th, .md-body td {
@@ -144,6 +146,10 @@ a { color: inherit; text-decoration: none; }
 .md-body th { background: #f0e8d8; color: var(--ink); font-weight: 700; white-space: nowrap; }
 .md-body code { background: #f0e8d8; padding: 2px 6px; border-radius: 2px; font-size: 14px; }
 .md-body img { max-width: 100%; border-radius: 3px; }
+
+/* 代码块（全书脉络 ASCII 图）：不折行，改为块内横向滚动 */
+.md-body pre { margin: 20px 0 24px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.md-body pre code { display: inline-block; min-width: 100%; padding: 10px 12px; }
 
 .site-foot {
   border-top: 1px solid var(--line); margin-top: 20px; padding: 26px 24px 60px;
@@ -162,4 +168,7 @@ a { color: inherit; text-decoration: none; }
   .d-head .meta { grid-template-columns: 1fr; gap: 2px 0; }
   .d-head .meta dt { margin-top: 10px; }
   .md-body { font-size: 16px; }
+  /* 窄屏表头不强制不换行，减少表格需要横向滚动的概率 */
+  .md-body th { white-space: normal; }
+  .md-body .tw { margin: 18px 0 22px; }
 }
